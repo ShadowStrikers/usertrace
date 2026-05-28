@@ -1,0 +1,211 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+body{font-family:'Inter',sans-serif;background:#0f0f0f;color:#e2e2e2;min-height:100vh}
+.page{max-width:640px;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;border:1.5px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo-mark i{font-size:16px;color:#4ade80}
+.logo-text{font-size:14px;font-weight:500;color:#e2e2e2;letter-spacing:-0.01em}
+.logo-sub{font-size:11px;color:#444;font-family:'JetBrains Mono',monospace;margin-top:1px}
+.clock{font-family:'JetBrains Mono',monospace;font-size:11px;color:#333}
+.search-area{margin-bottom:2rem}
+.field-label{font-size:11px;color:#444;font-family:'JetBrains Mono',monospace;margin-bottom:5px;letter-spacing:0.04em}
+.inp-row{display:flex;gap:8px}
+.inp{flex:1;background:#161616;border:1px solid #222;border-radius:6px;padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#e2e2e2;outline:none;transition:border-color .15s}
+.inp:focus{border-color:#2a2a2a;background:#1a1a1a}
+.inp::placeholder{color:#333}
+.run-btn{background:#4ade80;border:none;border-radius:6px;padding:11px 24px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#0f0f0f;cursor:pointer;white-space:nowrap;transition:background .15s}
+.run-btn:hover{background:#6ee79a}
+.run-btn:disabled{background:#1a3326;color:#2a6645;cursor:not-allowed}
+.progress-wrap{margin-bottom:2rem;display:none}
+.progress-wrap.show{display:block}
+.progress-meta{display:flex;justify-content:space-between;margin-bottom:6px}
+.progress-label{font-size:11px;color:#444;font-family:'JetBrains Mono',monospace}
+.progress-pct{font-size:11px;color:#4ade80;font-family:'JetBrains Mono',monospace}
+.progress-track{height:1px;background:#1e1e1e;border-radius:1px}
+.progress-fill{height:100%;background:#4ade80;border-radius:1px;transition:width .15s ease;width:0%}
+.summary{display:none}
+.summary.show{display:block}
+.summary-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem}
+.summary-name{font-size:24px;font-weight:500;letter-spacing:-0.02em}
+.summary-time{font-size:11px;color:#333;font-family:'JetBrains Mono',monospace}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:2rem}
+.metric{background:#141414;border:1px solid #1e1e1e;border-radius:8px;padding:12px 14px}
+.metric-label{font-size:10px;color:#444;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.metric-val{font-size:22px;font-weight:500}
+.metric-val.g{color:#4ade80}
+.metric-val.r{color:#f87171}
+.metric-val.y{color:#fbbf24}
+.section-label{font-size:10px;color:#333;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+.platform-table{width:100%;border-collapse:collapse}
+.platform-table tr{border-bottom:1px solid #161616}
+.platform-table tr:last-child{border-bottom:none}
+.platform-table td{padding:8px 0;vertical-align:middle}
+.pt-status{width:20px;font-family:'JetBrains Mono',monospace;font-size:13px}
+.pt-status.found{color:#4ade80}
+.pt-status.none{color:#222}
+.pt-status.unknown{color:#333}
+.pt-name{width:130px;font-size:13px;color:#444}
+.pt-name.found{color:#e2e2e2}
+.pt-link{font-family:'JetBrains Mono',monospace;font-size:11px}
+.pt-link a{color:#4ade80;text-decoration:none}
+.pt-link a:hover{text-decoration:underline}
+.pt-link.none{color:#222}
+.footer{font-size:11px;color:#2a2a2a;font-family:'JetBrains Mono',monospace;line-height:1.8;border-top:1px solid #161616;padding-top:1.5rem;margin-top:2rem}
+.footer a{color:#333;text-decoration:none}
+.footer a:hover{color:#555}
+</style>
+
+<h2 class="sr-only">UserTrace — OSINT username lookup across 25 platforms with live checking.</h2>
+
+<div class="page">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-mark"><i class="ti ti-user-search" aria-hidden="true"></i></div>
+      <div>
+        <div class="logo-text">UserTrace</div>
+        <div class="logo-sub">osint username recon</div>
+      </div>
+    </div>
+    <div class="clock" id="clock"></div>
+  </div>
+
+  <div class="search-area">
+    <div class="field-label">username</div>
+    <div class="inp-row">
+      <input class="inp" id="usrInp" type="text" placeholder="enter username to trace..." autocomplete="off" spellcheck="false" />
+      <button class="run-btn" id="runBtn" onclick="runScan()">scan</button>
+    </div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-meta">
+      <span class="progress-label" id="progressLabel">initializing...</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-top">
+      <div class="summary-name" id="summaryName"></div>
+      <div class="summary-time" id="summaryTime"></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Found</div><div class="metric-val g" id="mFound">—</div></div>
+      <div class="metric"><div class="metric-label">Not found</div><div class="metric-val r" id="mNot">—</div></div>
+      <div class="metric"><div class="metric-label">Exposure</div><div class="metric-val y" id="mExposure">—</div></div>
+    </div>
+    <div class="section-label">platform results</div>
+    <table class="platform-table" id="platformTable"></table>
+  </div>
+
+  <div class="footer">
+    // live checks via cors proxy — results may vary by platform<br>
+    // inspired by <a href="https://github.com/sherlock-project/sherlock" target="_blank">sherlock-project/sherlock</a>
+  </div>
+</div>
+
+<script>
+const PLATFORMS=[
+  {name:"GitHub",url:"https://github.com/"},
+  {name:"GitLab",url:"https://gitlab.com/"},
+  {name:"Reddit",url:"https://reddit.com/user/"},
+  {name:"Twitter/X",url:"https://twitter.com/"},
+  {name:"Instagram",url:"https://instagram.com/"},
+  {name:"TikTok",url:"https://tiktok.com/@"},
+  {name:"YouTube",url:"https://youtube.com/@"},
+  {name:"Twitch",url:"https://twitch.tv/"},
+  {name:"LinkedIn",url:"https://linkedin.com/in/"},
+  {name:"Pinterest",url:"https://pinterest.com/"},
+  {name:"Steam",url:"https://steamcommunity.com/id/"},
+  {name:"Spotify",url:"https://open.spotify.com/user/"},
+  {name:"Medium",url:"https://medium.com/@"},
+  {name:"Dev.to",url:"https://dev.to/"},
+  {name:"HackerNews",url:"https://news.ycombinator.com/user?id="},
+  {name:"Keybase",url:"https://keybase.io/"},
+  {name:"Mastodon",url:"https://mastodon.social/@"},
+  {name:"SoundCloud",url:"https://soundcloud.com/"},
+  {name:"Behance",url:"https://behance.net/"},
+  {name:"Dribbble",url:"https://dribbble.com/"},
+  {name:"Flickr",url:"https://flickr.com/people/"},
+  {name:"Vimeo",url:"https://vimeo.com/"},
+  {name:"Patreon",url:"https://patreon.com/"},
+  {name:"HackTheBox",url:"https://app.hackthebox.com/users/"},
+  {name:"TryHackMe",url:"https://tryhackme.com/p/"},
+];
+
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function tick(){const el=document.getElementById('clock');if(el)el.textContent=new Date().toTimeString().slice(0,8);}
+tick();setInterval(tick,1000);
+
+async function checkPlatform(url){
+  try{
+    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`,{method:'HEAD',signal:AbortSignal.timeout(5000)});
+    return r.status===200||r.status===301||r.status===302;
+  }catch{return null;}
+}
+
+async function runScan(){
+  const username=document.getElementById('usrInp').value.trim();
+  if(!username){document.getElementById('usrInp').focus();return;}
+
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;
+  document.getElementById('summary').className='summary';
+  document.getElementById('platformTable').innerHTML='';
+
+  const pw=document.getElementById('progressWrap');
+  const pLabel=document.getElementById('progressLabel');
+  const pPct=document.getElementById('progressPct');
+  const pFill=document.getElementById('progressFill');
+  pw.className='progress-wrap show';
+  pFill.style.width='0%';
+
+  const table=document.getElementById('platformTable');
+  const results=[];
+
+  for(let i=0;i<PLATFORMS.length;i++){
+    const p=PLATFORMS[i];
+    pLabel.textContent=`checking ${p.name.toLowerCase()}...`;
+    const pct=Math.round(((i+1)/PLATFORMS.length)*100);
+    pPct.textContent=pct+'%';
+    pFill.style.width=pct+'%';
+
+    const fullUrl=p.url+username;
+    const found=await checkPlatform(fullUrl);
+    results.push({...p,found,url:fullUrl});
+
+    const tr=document.createElement('tr');
+    if(found===true){
+      tr.innerHTML=`<td class="pt-status found">+</td><td class="pt-name found">${p.name}</td><td class="pt-link"><a href="${fullUrl}" target="_blank">${fullUrl}</a></td>`;
+    } else if(found===false){
+      tr.innerHTML=`<td class="pt-status none">—</td><td class="pt-name">${p.name}</td><td class="pt-link none">not found</td>`;
+    } else {
+      tr.innerHTML=`<td class="pt-status unknown">?</td><td class="pt-name">${p.name}</td><td class="pt-link none" style="color:#222">unreachable</td>`;
+    }
+    table.appendChild(tr);
+  }
+
+  pw.className='progress-wrap';
+
+  const foundList=results.filter(r=>r.found===true);
+  const notFound=results.filter(r=>r.found===false);
+  const exposure=Math.min(100,Math.round((foundList.length/PLATFORMS.length)*100*2.2));
+
+  document.getElementById('summaryName').textContent=username;
+  document.getElementById('summaryTime').textContent=new Date().toISOString().slice(0,19).replace('T',' ')+' UTC';
+  document.getElementById('mFound').textContent=foundList.length;
+  document.getElementById('mNot').textContent=notFound.length;
+  document.getElementById('mExposure').textContent=exposure+'%';
+  document.getElementById('summary').className='summary show';
+
+  btn.disabled=false;
+}
+
+document.getElementById('usrInp').addEventListener('keydown',e=>{if(e.key==='Enter')runScan();});
+</script>
